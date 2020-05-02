@@ -20,7 +20,7 @@ class CPU:
             0b01000101: self.push,
             0b01000110: self.pop,
             0b01010000: self.call,
-            0b00010001: self.ret,
+            0b00010001: self.iret,
             0b10100000: self.add,
             0b10100111: self.cmp,
             0b01010100: self.jmp,
@@ -75,7 +75,7 @@ class CPU:
         self.pc = routine_address
         return (0, True)
     
-    def ret(self, *args):
+    def iret(self, *args):
         self.pop(2, None)
         next_address = self.reg[2]
         self.pc = next_address
@@ -84,6 +84,10 @@ class CPU:
     def cmp(self, operand_a, operand_b):
         self.alu("CMP", operand_a, operand_b)
         return (3, True)
+
+    def jmp(self, operand_a, operand_b):
+        self.pc = self.reg[operand_a]
+        return (0, True)
 
     def load(self, program):
         address = 0
