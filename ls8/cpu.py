@@ -89,6 +89,18 @@ class CPU:
         self.pc = self.reg[operand_a]
         return (0, True)
 
+    def jeq(self, operand_a, operand_b):
+        if self.flag == 0b00000001:
+            self.pc = self.reg[operand_a]
+            return (0, True)
+        return (2, True)
+
+    def jne(self, operand_a, operand_b):
+        if self.flag != 0b00000001:
+            self.pc = self.reg[operand_a]
+            return (0, True)
+        return (2, True)
+
     def load(self, program):
         address = 0
 
@@ -101,9 +113,7 @@ class CPU:
                     self.ram_write(int(num, 2), address)
                     address += 1
                 except ValueError:
-                    print("Value Error")
                     pass
-
 
 
     def alu(self, op, reg_a, reg_b):
@@ -113,6 +123,13 @@ class CPU:
             self.reg[reg_a] += self.reg[reg_b]
         elif op == "MUL":
             self.reg[reg_a] = (self.reg[reg_a] * self.reg[reg_b])
+        elif op == "CMP":
+            if self.reg[reg_a] == self.reg[reg_b]:
+                self.flag == 0b00000001
+            elif self.reg[reg_a] > self.reg[reg_b]:
+                self.flag = 0b00000010
+            elif self.reg[reg_a] < self.reg[reg_b]:
+                self.flag = 0b00000100
         else:
             raise Exception("Unsupported ALU operation")
 
