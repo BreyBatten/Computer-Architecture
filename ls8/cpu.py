@@ -21,7 +21,11 @@ class CPU:
             0b01000110: self.pop,
             0b01010000: self.call,
             0b00010001: self.ret,
-            0b10100000: self.add
+            0b10100000: self.add,
+            0b10100111: self.cmp,
+            0b01010100: self.jmp,
+            0b01010101: self.jeq,
+            0b01010110: self.jne
         }
 
     def ram_read(self, address):
@@ -50,7 +54,6 @@ class CPU:
         return (3, True)
 
     def push(self, operand_a, operand_b):
-        #reg_address = self.ram[self.pc + 1]
         self.sp -= 1
         value = self.reg[operand_a]
         self.ram[self.sp] = value
@@ -78,26 +81,13 @@ class CPU:
         self.pc = next_address
         return (0, True)
 
-    def load(self, program):
-        """Load a program into memory."""
+    def cmp(self, operand_a, operand_b):
+        self.alu("CMP", operand_a, operand_b)
+        return (3, True)
 
+    def load(self, program):
         address = 0
 
-        # For now, we've just hardcoded a program:
-
-        #program = [
-            # From print8.ls8
-        #    0b10000010, # LDI R0,8
-        #    0b00000000,
-        #    0b00001000,
-        #    0b01000111, # PRN R0
-        #    0b00000000,
-        #    0b00000001, # HLT
-        #]
-
-        #for instruction in program:
-        #    self.ram[address] = instruction
-        #    address += 1
         with open(program) as f:
             for line in f:
                 comment_split = line.split('#')
@@ -117,22 +107,15 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
         elif op == "MUL":
             self.reg[reg_a] = (self.reg[reg_a] * self.reg[reg_b])
         else:
             raise Exception("Unsupported ALU operation")
 
     def trace(self):
-        """
-        Handy function to print out the CPU state. You might want to call this
-        from run() if you need help debugging.
-        """
 
         print(f"TRACE: %02X | %02X %02X %02X |" % (
             self.pc,
-            #self.fl,
-            #self.ie,
             self.ram_read(self.pc),
             self.ram_read(self.pc + 1),
             self.ram_read(self.pc + 2)
@@ -144,7 +127,6 @@ class CPU:
         print()
 
     def run(self):
-        """Run the CPU."""
         running = True
         
         while running:
@@ -154,7 +136,6 @@ class CPU:
 
             try:
                 f = self.commands[instruction_register]
-                # print(f)
                 operation_op = f(operand_a, operand_b)
                 running = operation_op[1]
                 self.pc += operation_op[0]
